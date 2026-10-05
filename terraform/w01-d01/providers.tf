@@ -13,6 +13,7 @@ provider "aws" {
   skip_metadata_api_check     = true
   s3_use_path_style           = true
   endpoints {
-    s3 = "http://localhost.localstack.cloud:4566"
+    s3  = "http://localhost.localstack.cloud:4566"
+    ec2 = "http://localhost.localstack.cloud:4566"
   }
 }
