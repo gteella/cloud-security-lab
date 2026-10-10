@@ -1,0 +1,46 @@
+name: Terraform CI
+
+on:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  terraform-check:
+    name: Terraform Validation
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Install Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "1.16.4"
+
+      - name: Check Terraform version
+        run: terraform version
+
+      - name: Terraform format check
+        run: terraform fmt -check -recursive
+
+      - name: Terraform Init
+        working-directory: terraform/w01-d01/environments/dev
+        run: terraform init -backend=false -input=false
+
+      - name: Terraform Validate
+        working-directory: terraform/w01-d01/environments/dev
+        run: terraform validate
+
+      - name: Trivy Security Scan
+        uses: aquasecurity/trivy-action@0.35.0
+        with:
+          scan-type: config
+          scan-ref: terraform/w01-d01
+          severity: HIGH,CRITICAL
+          exit-code: '1'
+
