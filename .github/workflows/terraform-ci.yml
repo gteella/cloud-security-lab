@@ -44,3 +44,24 @@ jobs:
           severity: HIGH,CRITICAL
           exit-code: '1'
 
+      - name: Terraform Risk analysis
+        run: |
+          python3 scripts/analyse_plan.py \
+            tests/fixtures/high-risk-plan.json \
+            > risk-report.json
+
+          cat risk-report.json
+
+      - name: Enforce Terraform Risk Policy
+        run: |
+          RISK=$(jq -r '.overall_risk' risk-report.json)
+          echo "Terraform risk level: $RISK"
+
+          if [ "$RISK" = "BLOCK" ]; then
+            echo "::error::Critical Terraform risk detected"
+            exit 1
+          fi
+
+          if [ "$RISK" = "REVIEW" ]; then
+            echo "::warning::Manual approval required"
+          fi

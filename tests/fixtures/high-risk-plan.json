@@ -1,0 +1,18 @@
+{
+  "resource_changes": [
+    {
+      "address": "aws_instance.app",
+      "type": "aws_instance",
+      "change": {
+        "actions": ["delete", "create"]
+      }
+    },
+    {
+      "address": "aws_db_instance.production",
+      "type": "aws_db_instance",
+      "change": {
+        "actions": ["delete"]
+      }
+    }
+  ]
+}
