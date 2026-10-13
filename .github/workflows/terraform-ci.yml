@@ -15,12 +15,17 @@ jobs:
 
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          fetch-depth: 0
 
       - name: Install Terraform
-        uses: hashicorp/setup-terraform@v3
+        uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd
         with:
           terraform_version: "1.16.4"
+
+      - name: Check gitleaks
+        uses: gitleaks/gitleaks-actions@e0c47f4f8be36e29cdc102c57e68cb5cbf0e8d1e
 
       - name: Check Terraform version
         run: terraform version
@@ -37,7 +42,7 @@ jobs:
         run: terraform validate
 
       - name: Trivy Security Scan
-        uses: aquasecurity/trivy-action@0.35.0
+        uses: aquasecurity/trivy-action@57a97c7e7821a5776cebc9bb87c984fa69cba8f1
         with:
           scan-type: config
           scan-ref: terraform/w01-d01

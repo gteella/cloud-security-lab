@@ -24,6 +24,24 @@ for resource in plan.get("resource_changes", []):
     resource_type = resource["type"]
     address = resource["address"]
 
+    # Detect public SSH access
+    if resource_type == "aws_vpc_security_group_ingress_rule":
+        after = resource["change"].get("after") or {}
+
+        if (
+                "create" in actions or "update" in actions
+        ) and (
+                after.get("cidr_ipv4") == "0.0.0.0/0"
+                and after.get("ip_protocol") == "tcp"
+                and after.get("from_port", 0) <= 22 <= after.get("to_port", 0)
+        ):
+            findings.append({
+                "resource": address,
+                "risk": "BLOCK",
+                "reason": "SSH exposed to the internet"
+            })
+            overall_risk = "BLOCK"
+
     if "delete" not in actions:
         continue
 
