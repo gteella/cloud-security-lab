@@ -1,0 +1,17 @@
+# AWS-0104
+# Accepted for LocalStack development lab.
+# Unrestricted egress is retained for lab experimentation.
+# Production workloads must restrict outbound access to required destinations/protocols.
+AWS-0104
+
+# AWS-0132
+# Accepted for LocalStack development environment with no sensitive data.
+# Production S3 must follow the organisation's approved encryption/key-management policy.
+AWS-0132
+
+# AWS-0178
+# LocalStack dev environment only.
+# Risk: Missing network flow visibility.
+# Mitigation: Synthetic infrastructure; no production traffic.
+# Review: Implement VPC Flow Logs during observability work.
+AVD-AWS-0178

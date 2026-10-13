@@ -47,3 +47,5 @@ terraform.rc
 # Local environment/secrets
 .env
 **/.env
+
+**/.idea

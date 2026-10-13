@@ -1,0 +1,12 @@
+{
+  "risk_thresholds": {
+    "dev": {
+      "review": 80,
+      "block": 101
+    },
+    "prod": {
+      "review": 40,
+      "block": 80
+    }
+  }
+}

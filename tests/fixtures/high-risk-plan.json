@@ -1,0 +1,11 @@
+{
+  "resource_changes": [
+    {
+      "address": "aws_instance.app",
+      "type": "aws_instance",
+      "change": {
+        "actions": ["delete", "create"]
+      }
+    }
+  ]
+}
