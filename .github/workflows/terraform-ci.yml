@@ -4,6 +4,8 @@ on:
   pull_request:
     branches:
       - main
+  workflow_dispatch:
+
 
 jobs:
   terraform-check:
@@ -72,3 +74,17 @@ jobs:
           if [ "$RISK" = "REVIEW" ]; then
             echo "::warning::Manual approval required"
           fi
+
+  production-approval-test:
+    name: Production Approval Test
+    runs-on: ubuntu-latest
+    environment: production
+
+    permissions:
+      contents: read
+
+    steps:
+      - name: Simulate production deployment
+        run: |
+          echo "Production environment approval granted"
+          echo "Simulating deployment — no AWS resources created"
