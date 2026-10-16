@@ -26,11 +26,6 @@ jobs:
         with:
           terraform_version: "1.16.4"
 
-      - name: Check gitleaks
-        uses: gitleaks/gitleaks-action@e0c47f4f8be36e29cdc102c57e68cb5cbf0e8d1e
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
       - name: Check Terraform version
         run: terraform version
 
@@ -44,14 +39,6 @@ jobs:
       - name: Terraform Validate
         working-directory: terraform/w01-d01/environments/dev
         run: terraform validate
-
-      - name: Trivy Security Scan
-        uses: aquasecurity/trivy-action@57a97c7e7821a5776cebc9bb87c984fa69cba8f1
-        with:
-          scan-type: config
-          scan-ref: terraform/w01-d01
-          severity: HIGH,CRITICAL
-          exit-code: '1'
 
       - name: Terraform Risk analysis
         run: |
@@ -75,10 +62,34 @@ jobs:
             echo "::warning::Manual approval required"
           fi
 
+  security-scan:
+    name: Security Scan
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+
+      - name: Check gitleaks
+        uses: gitleaks/gitleaks-action@e0c47f4f8be36e29cdc102c57e68cb5cbf0e8d1e
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Trivy Security Scan
+        uses: aquasecurity/trivy-action@57a97c7e7821a5776cebc9bb87c984fa69cba8f1
+        with:
+          scan-type: config
+          scan-ref: terraform/w01-d01
+          severity: HIGH,CRITICAL
+          exit-code: '1'
+
   production-approval-test:
     name: Production Approval Test
     runs-on: ubuntu-latest
     environment: production
+    needs: terraform-check
 
     permissions:
       contents: read
