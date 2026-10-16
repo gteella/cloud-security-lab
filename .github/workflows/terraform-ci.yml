@@ -6,7 +6,6 @@ on:
       - main
   workflow_dispatch:
 
-
 jobs:
   terraform-check:
     name: Terraform Validation
@@ -40,28 +39,6 @@ jobs:
         working-directory: terraform/w01-d01/environments/dev
         run: terraform validate
 
-      - name: Terraform Risk analysis
-        run: |
-          python3 scripts/analyse_plan.py \
-            tests/fixtures/high-risk-plan.json \
-            > risk-report.json
-
-          cat risk-report.json
-
-      - name: Enforce Terraform Risk Policy
-        run: |
-          RISK=$(jq -r '.overall_risk' risk-report.json)
-          echo "Terraform risk level: $RISK"
-
-          if [ "$RISK" = "BLOCK" ]; then
-            echo "::error::Critical Terraform risk detected"
-            exit 1
-          fi
-
-          if [ "$RISK" = "REVIEW" ]; then
-            echo "::warning::Manual approval required"
-          fi
-
   security-scan:
     name: Security Scan
     runs-on: ubuntu-latest
@@ -86,11 +63,68 @@ jobs:
           severity: HIGH,CRITICAL
           exit-code: '1'
 
+  policy-check:
+    name: Policy Enforcement
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          fetch-depth: 0
+      - name: Install Conftest
+        shell: bash
+        env:
+          CONFTEST_SHA256: ${{ vars.CONFTEST_SHA256 }}
+        run: |
+          set -euo pipefail
+
+          VERSION="0.59.0"
+          ARCHIVE="conftest_${VERSION}_Linux_x86_64.tar.gz"
+
+          curl --fail --location --silent --show-error \
+            --output "$ARCHIVE" \
+            "https://github.com/open-policy-agent/conftest/releases/download/v${VERSION}/${ARCHIVE}"
+
+          echo "${CONFTEST_SHA256}  ${ARCHIVE}" | sha256sum --check
+
+          tar -xzf "$ARCHIVE" conftest
+          sudo install -m 0755 conftest /usr/local/bin/conftest
+
+          conftest --version
+      - name: Terraform Risk analysis
+        run: |
+          python3 scripts/analyse_plan.py \
+            tests/fixtures/high-risk-plan.json \
+            > risk-report.json
+
+          cat risk-report.json
+
+      - name: Enforce Terraform Risk Policy
+        run: |
+          RISK=$(jq -r '.overall_risk' risk-report.json)
+          echo "Terraform risk level: $RISK"
+
+          if [ "$RISK" = "BLOCK" ]; then
+            echo "::error::Critical Terraform risk detected"
+            exit 1
+          fi
+
+          if [ "$RISK" = "REVIEW" ]; then
+            echo "::warning::Manual approval required"
+          fi
+
   production-approval-test:
     name: Production Approval Test
     runs-on: ubuntu-latest
     environment: production
-    needs: terraform-check
+    needs:
+      - terraform-check
+      - security-scan
+      - policy-check
 
     permissions:
       contents: read
