@@ -7,6 +7,14 @@ CRITICAL_RESOURCES = {
     "aws_s3_bucket"
 }
 
+STATEFUL_RESOURCES = {
+    "aws_db_instance",
+    "aws_rds_cluster",
+    "aws_s3_bucket",
+    "aws_dynamodb_table",
+    "aws_efs_file_system",
+}
+
 RISK_PRIORITY = {
     "LOW": 0,
     "REVIEW": 1,
@@ -24,6 +32,20 @@ for resource in plan.get("resource_changes", []):
     resource_type = resource["type"]
     address = resource["address"]
 
+    actions = resource.get("change", {}).get("actions", [])
+
+    if (
+            resource.get("type") in STATEFUL_RESOURCES
+            and "delete" in actions
+    ):
+        findings.append({
+            "resource": resource["address"],
+            "risk": "BLOCK",
+            "reason": (
+                "Destructive change to a stateful "
+                "production resource"
+            ),
+        })
     # Detect public SSH access
     if resource_type == "aws_vpc_security_group_ingress_rule":
         after = resource["change"].get("after") or {}

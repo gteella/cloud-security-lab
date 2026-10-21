@@ -1,0 +1,18 @@
+
+{
+  "resource_changes": [
+    {
+      "address": "aws_db_instance.production",
+      "type": "aws_db_instance",
+      "change": {
+        "actions": ["delete", "create"],
+        "before": {
+          "identifier": "production-db"
+        },
+        "after": {
+          "identifier": "production-db-v2"
+        }
+      }
+    }
+  ]
+}
